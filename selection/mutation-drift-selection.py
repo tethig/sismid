@@ -1,9 +1,17 @@
-# packages
-import numpy as np
-import itertools
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+"""
+Simulate Wright-Fisher population dynamics with selection
+"""
+
 import argparse
+import numpy as np
+import matplotlib as mpl
+mpl.use('TkAgg')
+import matplotlib.pyplot as plt
+
+try:
+    import itertools.izip as zip
+except ImportError:
+    import itertools
 
 # global variables
 pop_size = 50

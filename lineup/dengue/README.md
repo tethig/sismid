@@ -14,6 +14,8 @@
 ### Serology
 
 * Fig 2 in [Katzelnick et al. 2015.](katzelnick-dengue-serology.pdf)
+* Figs. 3 and 4 in [Katzelnick et al. 2017.](katzelnick-dengue-ADE.pdf)
+
 
 ### Timeseries
 
@@ -24,5 +26,5 @@
 ### Genetics
 
 * Fig 1 in [Adams et al. 2006.](adams-dengue-genetics.pdf)
-* Fig 4 in [Rasmussen et al. 2013](rasmussen-dengue-sequence.pdf)
+* Fig 4 in [Rasmussen et al. 2014](rasmussen-dengue-genetics.pdf)
 * Fig 1 and 2 in [Pyke et al. 2016](pyke-dengue-genetics.pdf)

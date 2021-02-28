@@ -7,6 +7,8 @@ Simulate Wright-Fisher population dynamics with selection
 # packages
 import argparse
 import numpy as np
+import scipy as sp
+import scipy.stats as stats
 import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -16,18 +18,20 @@ try:
 except ImportError:
     import itertools
 
-# global variables
+## global variables
 # alphabet = ['A', 'T', 'G', 'C']
 # pop_size = 100 # changed to agree with argparse default
 # seq_length = 100
 # mutation_rate = 0.0001 # per gen per individual per site
 # generations = 500
-# fit_deleterious = 0.9 # fitness effect if a deleterious mutation occurs
-# del_chance = 0.8 # chance that a mutation is deleterious
-# fit_benefit = 1.1  # fitness effect if a beneficial mutation occurs
-# ben_chance = 0.1  # chance that a mutation is beneficial
+# lethal = 0.1  # proportion of lethal mutations
+# mu, sigma = -0.29, 0.31 #mu=mean sigma=sd of phiX174 normal distribution
+# lower, upper = -1.0, 1.0 # clips for truncation
+# Acknowledgement: table 2 in https://doi.org/10.1111/j.1558-5646.2012.01691.x
+# dfem = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+# notes on (a,b) clipping: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
 
-# population
+## population
 # base_haplotype = ''.join(["A" for i in range(seq_length)])
 # pop = {}
 # pop[base_haplotype] = pop_size
@@ -57,12 +61,14 @@ def get_mutant(haplotype):
 
 def get_fitness(haplotype):
     old_fitness = fitnesses[haplotype]
-    if rng.random(1) < del_chance: # using updated generator
-        return old_fitness * fit_deleterious
-    elif rng.random(1) < (ben_chance / (1-del_chance)): # proportion of residual
-        return old_fitness * fit_benefit
+    if rng.random(1) < lethal: # mutation may be lethal
+        return 0.0
     else: # remaining chance > neutral change (note: memoryless at mutation level)
-        return old_fitness
+        new_fitness = old_fitness + float(dfem.rvs(size=1))
+        if new_fitness < 0.0:
+            return 0.0
+        else:
+            return new_fitness
 
 def mutation_event():
     haplotype = get_random_haplotype()
@@ -266,10 +272,9 @@ if __name__=="__main__":
     parser.add_argument('--mutation_rate', type = float, default = 0.0001, help = "mutation rate")
     parser.add_argument('--seq_length', type = int, default = 100, help = "sequence length")
     parser.add_argument('--generations', type = int, default = 500, help = "generations")
-    parser.add_argument('--del_chance', type = float, default = 0.8, help = "chance mutation is deleterious")
-    parser.add_argument('--fit_deleterious', type = float, default = 0.9, help = "deleterious fitness effect")
-    parser.add_argument('--ben_chance', type=float, default=0.1, help="chance mutation is beneficial")
-    parser.add_argument('--fit_benefit', type=float, default=1.1, help="beneficial fitness effect")
+    parser.add_argument('--lethal', type = float, default = 0.1, help = "chance mutation is lethal")
+    parser.add_argument('--lower', type = float, default = -1.0, help = "lower limit on selection co-efficient")
+    parser.add_argument('--upper', type = float, default = 1.0, help = "upper limit on selection co-efficient")
     parser.add_argument('--summary', action = "store_true", default = False, help = "don't plot trajectories")
 
     params = parser.parse_args()
@@ -277,14 +282,15 @@ if __name__=="__main__":
     mutation_rate = params.mutation_rate
     seq_length = params.seq_length
     generations = params.generations
-    del_chance = params.del_chance
-    fit_deleterious = params.fit_deleterious
-    ben_chance = params.ben_chance
-    fit_benefit = params.fit_benefit
+    lethal = params.lethal
+    lower = params.lower
+    upper = params.upper
 
     # initialize
     rng = np.random.default_rng()  # create an instance of a Generator
     alphabet = ['A', 'T', 'G', 'C']
+    mu, sigma = -0.29, 0.31
+    dfem = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
     base_haplotype = ''.join(["A" for i in range(seq_length)])
     pop = {}
     pop[base_haplotype] = pop_size
@@ -296,9 +302,9 @@ if __name__=="__main__":
     simulate()
 
     if params.summary:
-        parameters = (pop_size, mutation_rate, seq_length, generations, del_chance, fit_deleterious, ben_chance, fit_benefit)
+        parameters = (pop_size, mutation_rate, seq_length, generations, lethal, lower, upper)
         par_as_str = '_'.join(([str(x) for x in parameters]))
-        par_as_header = "# pop_size: {}, mut_rate: {}, seq_len: {}, gens: {}, del_prop: {}, del_eff: {}, ben_prop: {}, ben_eff: {}".format(*parameters)
+        par_as_header = "# pop_size: {}, mut_rate: {}, seq_len: {}, gens: {}, lethal: {}, lower: {}, upper: {}, mu: -0.29, sigma: 0.31".format(*parameters)
 
         plt.figure(num=None, figsize=(14, 7.5), dpi=80, facecolor='w', edgecolor='k')
         plt.subplot2grid((2, 1), (0, 0))

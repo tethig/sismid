@@ -25,7 +25,7 @@ except ImportError:
 # mutation_rate = 0.0001 # per gen per individual per site
 # generations = 500
 # lethal = 0.1  # proportion of lethal mutations
-# mu, sigma = -0.29, 0.31  #mu=mean sigma=sd of phiX174 normal distribution
+# mu, sigma = -0.29, 0.31  # mu=mean sigma=sd of phiX174 normal distribution
 # Acknowledgement: table 2 in https://doi.org/10.1111/j.1558-5646.2012.01691.x
 # lower, upper = -1.0, 1.0  # clips for truncation
 # dfem = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
@@ -65,8 +65,7 @@ def get_fitness(haplotype):
         return 0.0
     else:  # remaining chance -> neutral change (note: memoryless at SNP level)
         new_fitness = old_fitness + float(dfem.rvs(size=1))
-        new_fitness = 0.0 if (new_fitness < 0.0) else new_fitness  # 0 is floor, update via ternary operator
-        return new_fitness
+        return 0.0 if (new_fitness < 0.0) else new_fitness  # 0 is floor, update via ternary operator
 
 def mutation_event():
     haplotype = get_random_haplotype()

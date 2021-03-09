@@ -25,9 +25,9 @@ except ImportError:
 # mutation_rate = 0.0001 # per gen per individual per site
 # generations = 500
 # lethal = 0.1  # proportion of lethal mutations
-# mu, sigma = -0.29, 0.31 #mu=mean sigma=sd of phiX174 normal distribution
-# lower, upper = -1.0, 1.0 # clips for truncation
+# mu, sigma = -0.29, 0.31  #mu=mean sigma=sd of phiX174 normal distribution
 # Acknowledgement: table 2 in https://doi.org/10.1111/j.1558-5646.2012.01691.x
+# lower, upper = -1.0, 1.0  # clips for truncation
 # dfem = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
 # notes on (a,b) clipping: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
 
@@ -282,7 +282,7 @@ if __name__=="__main__":
     # initialize
     rng = np.random.default_rng()  # create an instance of a Generator
     alphabet = ['A', 'T', 'G', 'C']
-    mu, sigma = -0.29, 0.31
+    mu, sigma = -0.29, 0.31  # hard-coded in here
     dfem = stats.truncnorm((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
     base_haplotype = ''.join(["A" for i in range(seq_length)])
     pop = {}

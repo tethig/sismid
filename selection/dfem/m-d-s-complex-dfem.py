@@ -35,9 +35,9 @@ except ImportError:
 # base_haplotype = ''.join(["A" for i in range(seq_length)])
 # pop = {}
 # pop[base_haplotype] = pop_size
-# fitnesses = {} # name changed to fitnesses for clarity (fitness is individual)
+# fitnesses = {}  # this dictionary will grow, never shrink
 # fitnesses[base_haplotype] = 1.0
-# history, halcyon = [], []
+# history = []
 
 # mutation
 def get_mutation_count():
@@ -52,7 +52,7 @@ def get_random_haplotype():
     return np.random.choice(haplotypes, p=frequencies)
 
 def get_mutant(haplotype):
-    site = int(rng.integers(low=0, high=seq_length, size=1)) # using updated generator
+    site = int(rng.integers(low=0, high=seq_length, size=1))  # using updated generator
     possible_mutations = list(alphabet)
     possible_mutations.remove(haplotype[site])
     mutation = np.random.choice(possible_mutations)
@@ -61,25 +61,23 @@ def get_mutant(haplotype):
 
 def get_fitness(haplotype):
     old_fitness = fitnesses[haplotype]
-    if rng.random(1) < lethal: # mutation may be lethal
+    if rng.random(1) < lethal:  # mutation may be lethal
         return 0.0
-    else: # remaining chance > neutral change (note: memoryless at mutation level)
+    else:  # remaining chance -> neutral change (note: memoryless at SNP level)
         new_fitness = old_fitness + float(dfem.rvs(size=1))
-        if new_fitness < 0.0:
-            return 0.0
-        else:
-            return new_fitness
+        new_fitness = 0.0 if (new_fitness < 0.0) else new_fitness  # 0 is floor, update via ternary operator
+        return new_fitness
 
 def mutation_event():
     haplotype = get_random_haplotype()
-    if pop[haplotype] >= 1: # was ">"
+    if pop[haplotype] >= 1:  # was ">"
         pop[haplotype] -= 1
         new_haplotype = get_mutant(haplotype)
         if new_haplotype in pop:
             pop[new_haplotype] += 1
         else:
             pop[new_haplotype] = 1
-        if new_haplotype not in fitnesses:
+        if new_haplotype not in fitnesses:  # dead haplotypes may be re-created
             fitnesses[new_haplotype] = get_fitness(haplotype)
 
 def mutation_step():
@@ -91,7 +89,7 @@ def mutation_step():
 def get_offspring_counts():
     haplotypes = list(pop.keys())
     frequencies = [pop[haplotype]/float(pop_size) for haplotype in haplotypes]
-    fitness_list = [fitnesses[haplotype] for haplotype in haplotypes] # name changed to fitness_list
+    fitness_list = [fitnesses[haplotype] for haplotype in haplotypes]  # name changed to fitness_list
     weights = [x * y for x,y in zip(frequencies, fitness_list)]
     total = sum(weights)
     weights = [x / total for x in weights]
@@ -103,7 +101,7 @@ def offspring_step():
         if (count > 0):
             pop[haplotype] = count
         else:
-            del pop[haplotype]
+            del pop[haplotype]  # so it will remain in fitnesses dict
 
 # simulate
 def time_step():
@@ -113,15 +111,11 @@ def time_step():
 def simulate():
     clone_pop = dict(pop)
     history.append(clone_pop)
-    clone_fit = dict(fitnesses)
-    halcyon.append(clone_fit) # store fitnesses too
     for i in range(generations):
         time_step()
         clone_pop = dict(pop)
         history.append(clone_pop)
-        clone_fit = dict(fitnesses)
-        halcyon.append(clone_fit)
-
+ 
 # plot diversity
 def get_distance(seq_a, seq_b):
     diffs = 0
@@ -187,8 +181,7 @@ def get_mean_fitness(population, fitdict):
     return w
 
 def get_mean_fitness_trajectory():
-    #print(history[0], "\n", halcyon[0]) # testing initiation
-    trajectory = [get_mean_fitness(pgen, fgen) for pgen, fgen in zip(history, halcyon)]
+    trajectory = [get_mean_fitness(pgen, fitnesses) for pgen in history]
     return trajectory
 
 def fitness_plot(xlabel="generation"):
@@ -296,7 +289,7 @@ if __name__=="__main__":
     pop[base_haplotype] = pop_size
     fitnesses = {}  # name changed to fitnesses for clarity (fitness is individual)
     fitnesses[base_haplotype] = 1.0
-    history, halcyon = [], []
+    history = []
 
     # simulate
     simulate()

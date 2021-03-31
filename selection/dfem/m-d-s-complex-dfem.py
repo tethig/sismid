@@ -10,7 +10,7 @@ import numpy as np
 import scipy as sp
 import scipy.stats as stats
 import matplotlib as mpl
-mpl.use('TkAgg')
+#mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
 try:
